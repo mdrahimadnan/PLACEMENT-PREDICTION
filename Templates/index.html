@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Prediction & Student Analytics System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Plotly.js CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="app-layout">
+        <!-- ================= SIDEBAR NAVIGATION ================= -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">⚡</div>
+                <div>
+                    <h2>Placement AI</h2>
+                    <p>ML Analytics Platform</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-label">MAIN DASHBOARD</div>
+                <button class="nav-link {% if active_tab == 'tab-overview' %}active{% endif %}" data-tab="tab-overview">
+                    <span class="icon">🏠</span> Dashboard Overview
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-loading' %}active{% endif %}" data-tab="tab-loading">
+                    <span class="icon">📂</span> Data Loading & Status
+                </button>
+
+                <div class="nav-label">EXPLORATORY ANALYSIS</div>
+                <button class="nav-link {% if active_tab == 'tab-eda' %}active{% endif %}" data-tab="tab-eda">
+                    <span class="icon">📈</span> Interactive EDA Hub
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-placement' %}active{% endif %}" data-tab="tab-placement">
+                    <span class="icon">🎓</span> Placement Analysis
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-salary' %}active{% endif %}" data-tab="tab-salary">
+                    <span class="icon">💰</span> Salary Analysis
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-anomaly' %}active{% endif %}" data-tab="tab-anomaly">
+                    <span class="icon">⚠️</span> Anomaly Detection
+                </button>
+
+                <div class="nav-label">ML PIPELINE</div>
+                <button class="nav-link {% if active_tab == 'tab-preprocessing' %}active{% endif %}" data-tab="tab-preprocessing">
+                    <span class="icon">⚙️</span> Data Preprocessing
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-training' %}active{% endif %}" data-tab="tab-training">
+                    <span class="icon">🧠</span> Model Training
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-evaluation' %}active{% endif %}" data-tab="tab-evaluation">
+                    <span class="icon">📊</span> Model Evaluation
+                </button>
+                <button class="nav-link {% if active_tab == 'tab-predictor' %}active{% endif %}" data-tab="tab-predictor">
+                    <span class="icon">🎯</span> Placement Predictor
+                </button>
+
+                <div class="nav-label">DATABASE</div>
+                <button class="nav-link {% if active_tab == 'tab-students' %}active{% endif %}" data-tab="tab-students">
+                    <span class="icon">👥</span> Student Records (50k)
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-pill">
+                    <span class="dot"></span> Dataset Ready (50,000 Records)
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT AREA ================= -->
+        <main class="main-content">
+            
+            <!-- Top Navbar -->
+            <header class="topbar">
+                <div class="page-title">
+                    <h1 id="active-tab-title">Placement Prediction Analytics</h1>
+                    <p>Student Performance, Placement Trends & Machine Learning Insights</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="switchTab('tab-predictor')">🎯 Run Predictor</button>
+                    <button class="btn btn-primary" onclick="switchTab('tab-students')">👥 Student Records</button>
+                </div>
+            </header>
+
+            {% if error %}
+            <div class="error-banner">
+                <h3>⚠️ Application Error</h3>
+                <p>{{ error }}</p>
+            </div>
+            {% endif %}
+
+            {% if summary %}
+
+            <!-- ================= SECTION 1: DASHBOARD / HOME PAGE ================= -->
+            <section id="tab-overview" class="tab-pane {% if active_tab == 'tab-overview' %}active{% endif %}">
+                
+                <!-- Global Filter Toolbar -->
+                <div class="filter-bar">
+                    <div class="filter-title">🔍 Global Analytics Filters:</div>
+                    <div class="filter-group">
+                        <select id="dashFilterGender" class="filter-select">
+                            <option value="All">All Genders</option>
+                            {% for g in summary.unique_options.gender %}<option value="{{g}}">{{g}}</option>{% endfor %}
+                        </select>
+                        <select id="dashFilterStream" class="filter-select">
+                            <option value="All">All Streams</option>
+                            {% for s in summary.unique_options.stream %}<option value="{{s}}">{{s}}</option>{% endfor %}
+                        </select>
+                        <select id="dashFilterTier" class="filter-select">
+                            <option value="All">All Tiers</option>
+                            {% for t in summary.unique_options.tier %}<option value="{{t}}">{{t}}</option>{% endfor %}
+                        </select>
+                        <select id="dashFilterStatus" class="filter-select">
+                            <option value="All">All Statuses</option>
+                            <option value="1">Placed</option>
+                            <option value="0">Not Placed</option>
+                        </select>
+                        <button id="btnApplyDashFilters" class="btn btn-sm btn-primary">Apply Filters</button>
+                        <button id="btnResetDashFilters" class="btn btn-sm btn-outline">Reset</button>
+                    </div>
+                </div>
+
+                <!-- 8 Dynamic KPI CARDS -->
+                <div class="stats-grid">
+                    <div class="kpi-card purple">
+                        <div class="kpi-icon">👥</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Total Students</span>
+                            <h3 class="kpi-value" id="kpiTotalStudents">{{ "{:,}".format(summary.n_rows) }}</h3>
+                            <span class="kpi-sub">50,000 Dataset Records</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card green">
+                        <div class="kpi-icon">🎓</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Placed Students</span>
+                            <h3 class="kpi-value" id="kpiPlacedCount">{{ "{:,}".format(summary.placed_count) }}</h3>
+                            <span class="kpi-sub" id="kpiPlacementRate">{{ summary.placement_rate }}% Placement Rate</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card red">
+                        <div class="kpi-icon">❌</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Not Placed Students</span>
+                            <h3 class="kpi-value" id="kpiUnplacedCount">{{ "{:,}".format(summary.unplaced_count) }}</h3>
+                            <span class="kpi-sub">Awaiting Campus Placement</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card blue">
+                        <div class="kpi-icon">📈</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Placement Rate</span>
+                            <h3 class="kpi-value" id="kpiPlacementRateVal">{{ summary.placement_rate }}%</h3>
+                            <span class="kpi-sub">Placed / Total Ratio</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card teal">
+                        <div class="kpi-icon">📚</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Average CGPA</span>
+                            <h3 class="kpi-value" id="kpiAvgCGPA">{{ summary.avg_cgpa }}</h3>
+                            <span class="kpi-sub">Out of 10.0 Scale</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card amber">
+                        <div class="kpi-icon">📋</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Average Attendance</span>
+                            <h3 class="kpi-value" id="kpiAvgAttendance">{{ summary.avg_attendance }}%</h3>
+                            <span class="kpi-sub">Class Attendance Percentage</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card gold">
+                        <div class="kpi-icon">💼</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Avg Salary Package</span>
+                            <h3 class="kpi-value" id="kpiAvgSalary">₹{{ summary.avg_salary }} LPA</h3>
+                            <span class="kpi-sub">Placed Candidates Average</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card dark">
+                        <div class="kpi-icon">⚠️</div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Total Anomalies</span>
+                            <h3 class="kpi-value" id="kpiTotalAnomalies">{{ "{:,}".format(summary.total_anomalies) }}</h3>
+                            <span class="kpi-sub">{{ summary.anomaly_rate }}% Anomalous Flags</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 8 DASHBOARD VISUALIZATIONS GRID -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 1 — Placement Distribution</h3>
+                        </div>
+                        <div id="chartPlacementDist" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 2 — Students by Stream</h3>
+                        </div>
+                        <div id="chartStudentsStream" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 3 — Placement Rate by Stream (%)</h3>
+                        </div>
+                        <div id="chartRateStream" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 4 — Placement by College Tier</h3>
+                        </div>
+                        <div id="chartTierPlacement" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 5 — CGPA Distribution</h3>
+                        </div>
+                        <div id="chartCGPADist" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 6 — Salary Distribution</h3>
+                        </div>
+                        <div id="chartSalaryDist" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 7 — CGPA vs Placement</h3>
+                        </div>
+                        <div id="chartCGPAvsPlacement" class="plot-container"></div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Chart 8 — Placement by Gender</h3>
+                        </div>
+                        <div id="chartGenderPlacement" class="plot-container"></div>
+                    </div>
+                </div>
+
+                <!-- Auto Generated Insights -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>💡 Dynamic Dataset Insights</h2>
+                        <p>Calculated directly from actual student data</p>
+                    </div>
+                    <div class="insights-list">
+                        {% for ins in insights %}
+                        <div class="insight-item">
+                            <h4>{{ ins.title }}</h4>
+                            <p>{{ ins.text }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </section>
+
+
+            <!-- ================= SECTION 2: DATA LOADING PAGE ================= -->
+            <section id="tab-loading" class="tab-pane {% if active_tab == 'tab-loading' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Dataset Loading & Metadata Summary</h2>
+                        <p>File: <code>placement_predict_50k Dataset.csv</code></p>
+                    </div>
+
+                    <div class="meta-badges-grid">
+                        <div class="meta-badge"><span class="lbl">Status</span><span class="val success">Loaded Successfully</span></div>
+                        <div class="meta-badge"><span class="lbl">Total Rows</span><span class="val">{{ "{:,}".format(summary.n_rows) }}</span></div>
+                        <div class="meta-badge"><span class="lbl">Total Columns</span><span class="val">{{ summary.n_cols }}</span></div>
+                        <div class="meta-badge"><span class="lbl">Numerical Features</span><span class="val">{{ summary.numeric_cols | length }}</span></div>
+                        <div class="meta-badge"><span class="lbl">Categorical Features</span><span class="val">{{ summary.categorical_cols | length }}</span></div>
+                        <div class="meta-badge"><span class="lbl">Duplicate Rows</span><span class="val">{{ summary.duplicate_count }}</span></div>
+                    </div>
+
+                    <div class="section-divider"></div>
+                    <h3>Dataset Preview Table</h3>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    {% for col in summary.columns[:12] %}<th>{{ col }}</th>{% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in summary.preview %}
+                                <tr>
+                                    {% for col in summary.columns[:12] %}
+                                    <td>{{ row[col] }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 3: INTERACTIVE EDA HUB ================= -->
+            <section id="tab-eda" class="tab-pane {% if active_tab == 'tab-eda' %}active{% endif %}">
+                <div class="panel">
+                    <div class="eda-nav">
+                        <button class="eda-tab-btn active" data-eda="eda-overview">A. Overview</button>
+                        <button class="eda-tab-btn" data-eda="eda-missing">B. Missing Values</button>
+                        <button class="eda-tab-btn" data-eda="eda-univariate">C. Univariate</button>
+                        <button class="eda-tab-btn" data-eda="eda-categorical">D. Categorical</button>
+                        <button class="eda-tab-btn" data-eda="eda-bivariate">E. Bivariate</button>
+                        <button class="eda-tab-btn" data-eda="eda-correlation">F. Correlation</button>
+                        <button class="eda-tab-btn" data-eda="eda-outliers">G. Outliers</button>
+                    </div>
+
+                    <!-- EDA Subsection A: Overview -->
+                    <div id="eda-overview" class="eda-pane active">
+                        <h3>A. Dataset Overview & Data Dictionary</h3>
+                        <div id="edaOverviewContent">Loading overview data...</div>
+                    </div>
+
+                    <!-- EDA Subsection B: Missing Values -->
+                    <div id="eda-missing" class="eda-pane">
+                        <h3>B. Missing Value Distribution</h3>
+                        <div id="plotMissingBar" class="plot-container"></div>
+                        <div id="edaMissingTable"></div>
+                    </div>
+
+                    <!-- EDA Subsection C: Univariate Analysis -->
+                    <div id="eda-univariate" class="eda-pane">
+                        <h3>C. Univariate Analysis</h3>
+                        <div class="controls-row">
+                            <div class="control-item">
+                                <label>Select Numerical Feature:</label>
+                                <select id="edaUniFeature" class="form-select">
+                                    {% for col in summary.numeric_cols %}
+                                    {% if col != 'StudentID' %}<option value="{{col}}">{{col}}</option>{% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="control-item">
+                                <label>Select Visualization:</label>
+                                <select id="edaUniViz" class="form-select">
+                                    <option value="histogram">Histogram</option>
+                                    <option value="boxplot">Boxplot</option>
+                                    <option value="violin">Violin Plot</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="eda-result-split">
+                            <div id="plotUnivariate" class="plot-container"></div>
+                            <div class="stats-box" id="uniStatsBox">
+                                <h4>Descriptive Statistics</h4>
+                                <div id="uniStatsContent">Select a feature...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDA Subsection D: Categorical Analysis -->
+                    <div id="eda-categorical" class="eda-pane">
+                        <h3>D. Categorical Analysis</h3>
+                        <div class="controls-row">
+                            <div class="control-item">
+                                <label>Select Categorical Feature:</label>
+                                <select id="edaCatFeature" class="form-select">
+                                    {% for col in summary.categorical_cols %}
+                                    <option value="{{col}}">{{col}}</option>
+                                    {% endfor %}
+                                    <option value="PlacementStatus">PlacementStatus</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="eda-result-split">
+                            <div id="plotCategorical" class="plot-container"></div>
+                            <div class="stats-box" id="catFreqBox">
+                                <h4>Frequency Counts</h4>
+                                <div id="catFreqContent">Select feature...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDA Subsection E: Bivariate Analysis -->
+                    <div id="eda-bivariate" class="eda-pane">
+                        <h3>E. Bivariate Relationship Visualizer</h3>
+                        <div class="controls-row">
+                            <div class="control-item">
+                                <label>X Feature:</label>
+                                <select id="edaBiX" class="form-select">
+                                    {% for col in summary.numeric_cols %}<option value="{{col}}">{{col}}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="control-item">
+                                <label>Y Feature:</label>
+                                <select id="edaBiY" class="form-select">
+                                    {% for col in summary.numeric_cols %}<option value="{{col}}" {% if col == 'CodingTestScore' %}selected{% endif %}>{{col}}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="control-item">
+                                <label>Grouping / Color Feature:</label>
+                                <select id="edaBiGroup" class="form-select">
+                                    <option value="PlacementStatus">PlacementStatus</option>
+                                    <option value="Gender">Gender</option>
+                                    <option value="CollegeTier">CollegeTier</option>
+                                    <option value="Stream">Stream</option>
+                                    <option value="None">None</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="plotBivariate" class="plot-container" style="height: 500px;"></div>
+                    </div>
+
+                    <!-- EDA Subsection F: Correlation Analysis -->
+                    <div id="eda-correlation" class="eda-pane">
+                        <h3>F. Correlation Matrix & Top Associations</h3>
+                        <div id="plotCorrelation" class="plot-container" style="height: 600px;"></div>
+                        <div class="corr-tables-split">
+                            <div class="corr-box">
+                                <h4>🔥 Strongest Positive Associations</h4>
+                                <div id="topPosCorrList"></div>
+                            </div>
+                            <div class="corr-box">
+                                <h4>❄️ Strongest Negative Associations</h4>
+                                <div id="topNegCorrList"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDA Subsection G: Outlier Analysis -->
+                    <div id="eda-outliers" class="eda-pane">
+                        <h3>G. Outlier Analysis (IQR Method)</h3>
+                        <div class="controls-row">
+                            <div class="control-item">
+                                <label>Select Numerical Feature:</label>
+                                <select id="edaOutlierFeature" class="form-select">
+                                    {% for col in summary.numeric_cols %}<option value="{{col}}">{{col}}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="eda-result-split">
+                            <div id="plotOutlier" class="plot-container"></div>
+                            <div class="stats-box" id="outlierStatsBox">
+                                <h4>IQR Outlier Summary</h4>
+                                <div id="outlierStatsContent">Select feature...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 4: PREPROCESSING PAGE ================= -->
+            <section id="tab-preprocessing" class="tab-pane {% if active_tab == 'tab-preprocessing' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Machine Learning Data Preprocessing</h2>
+                        <p>Missing value imputation, categorical encoding, feature scaling & train/test splitting</p>
+                    </div>
+
+                    <div class="prep-grid">
+                        <div class="prep-card">
+                            <h3>1. Missing Value Strategy</h3>
+                            <label>Imputation Technique:</label>
+                            <select id="prepImputeStrategy" class="form-select">
+                                <option value="mean">Mean Imputation (Numerical) / Mode (Categorical)</option>
+                                <option value="median">Median Imputation (Numerical) / Mode (Categorical)</option>
+                                <option value="drop">Drop Rows with Missing Values</option>
+                            </select>
+                        </div>
+
+                        <div class="prep-card">
+                            <h3>2. Data Leakage Control</h3>
+                            <p class="prep-info-text">
+                                Target Variable: <code>PlacementStatus</code><br>
+                                Excluded Post-Outcome Features: <code>Salary Package</code>, <code>StudentID</code>, <code>IsAnomaly</code>.<br>
+                                Features are scaled after train-test splitting.
+                            </p>
+                        </div>
+
+                        <div class="prep-card">
+                            <h3>3. Train / Test Split Ratio</h3>
+                            <label>Testing Split Size:</label>
+                            <select id="prepTestSize" class="form-select">
+                                <option value="0.2">80% Training / 20% Testing (Default)</option>
+                                <option value="0.25">75% Training / 25% Testing</option>
+                                <option value="0.3">70% Training / 30% Testing</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button id="btnRunPreprocessing" class="btn btn-primary" style="margin-top: 20px;">⚡ Execute Preprocessing Pipeline</button>
+
+                    <div id="prepResultContainer" class="prep-result-box hidden" style="margin-top: 20px;">
+                        <h3>Preprocessing Execution Summary</h3>
+                        <div id="prepResultContent"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 5: MODEL TRAINING PAGE ================= -->
+            <section id="tab-training" class="tab-pane {% if active_tab == 'tab-training' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Machine Learning Model Training</h2>
+                        <p>Train classification algorithms to predict placement outcomes</p>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select Classifier Algorithm:</label>
+                            <select id="trainModelName" class="form-select">
+                                <option value="Random Forest">Random Forest Classifier (Recommended)</option>
+                                <option value="Decision Tree">Decision Tree Classifier</option>
+                                <option value="Logistic Regression">Logistic Regression</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Hyperparameter: Max Depth</label>
+                            <input type="number" id="trainMaxDepth" class="form-input" value="10" min="2" max="30">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Hyperparameter: N Trees (Random Forest)</label>
+                            <input type="number" id="trainNEstimators" class="form-input" value="100" min="10" max="300">
+                        </div>
+                    </div>
+
+                    <button id="btnTrainModel" class="btn btn-primary btn-lg">🧠 Train Selected ML Model</button>
+
+                    <div id="trainingStatusBox" class="status-box hidden" style="margin-top: 20px;">
+                        <div id="trainingSpinner" class="spinner"></div>
+                        <span id="trainingStatusText">Training model on 50,000 dataset...</span>
+                    </div>
+
+                    <div id="trainingResultPanel" class="hidden" style="margin-top: 25px;">
+                        <h3>Training Completed Successfully!</h3>
+                        <div id="trainingMetricsSummary"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 6: MODEL EVALUATION PAGE ================= -->
+            <section id="tab-evaluation" class="tab-pane {% if active_tab == 'tab-evaluation' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Model Evaluation & Performance Comparison</h2>
+                        <p>Classification metrics, Confusion Matrix, ROC-AUC Curves & Feature Importance</p>
+                    </div>
+
+                    <!-- Model Comparison Table -->
+                    <h3>Model Comparison Table</h3>
+                    <div id="modelComparisonTableContainer">
+                        <p class="text-muted">No models trained yet. Click "Train Model" to evaluate performance.</p>
+                    </div>
+
+                    <div class="charts-grid" style="margin-top: 25px;">
+                        <div class="chart-card">
+                            <h3>Confusion Matrix</h3>
+                            <div id="plotConfusionMatrix" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>ROC Curve & AUC Score</h3>
+                            <div id="plotROCCurve" class="plot-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="chart-card" style="margin-top: 25px;">
+                        <h3>Feature Importance / Coefficient Impact</h3>
+                        <div id="plotFeatureImportance" class="plot-container" style="height: 450px;"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 7: PLACEMENT ANALYSIS PAGE ================= -->
+            <section id="tab-placement" class="tab-pane {% if active_tab == 'tab-placement' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Placement Factors & Demographic Breakdown</h2>
+                        <p>Identifying key factors associated with campus placement success</p>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>Placement by Gender</h3>
+                            <div id="plotPlacementGender" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Placement by Stream</h3>
+                            <div id="plotPlacementStream" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Placement by College Tier</h3>
+                            <div id="plotPlacementTier" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Placement by History of Backlogs</h3>
+                            <div id="plotPlacementBacklogs" class="plot-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-top: 25px;">
+                        <h3>Placement Association Ranking</h3>
+                        <p class="text-muted">Point biserial statistical association of student parameters with placement outcome</p>
+                        <div id="placementAssociationsTable"></div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 8: SALARY ANALYSIS PAGE ================= -->
+            <section id="tab-salary" class="tab-pane {% if active_tab == 'tab-salary' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Salary Package Analytics (Placed Students)</h2>
+                        <p>Analyzing salary distributions, stream benchmarks, and skill correlations</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="kpi-card gold">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Average Salary Package</span>
+                                <h3 class="kpi-value" id="salAvgVal">₹0.0 LPA</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card green">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Median Salary Package</span>
+                                <h3 class="kpi-value" id="salMedianVal">₹0.0 LPA</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card blue">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Maximum Salary Package</span>
+                                <h3 class="kpi-value" id="salMaxVal">₹0.0 LPA</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid" style="margin-top: 25px;">
+                        <div class="chart-card">
+                            <h3>Salary Package Distribution</h3>
+                            <div id="plotSalaryDistPage" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Average Salary by Stream</h3>
+                            <div id="plotSalaryByStream" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Salary Package vs CGPA</h3>
+                            <div id="plotSalaryVsCGPA" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Salary Package vs Coding Test Score</h3>
+                            <div id="plotSalaryVsCoding" class="plot-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 9: ANOMALY ANALYSIS PAGE ================= -->
+            <section id="tab-anomaly" class="tab-pane {% if active_tab == 'tab-anomaly' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Dataset Anomaly Analysis (<code>IsAnomaly</code>)</h2>
+                        <p>Identifying statistical outliers and anomalous student record flags</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="kpi-card purple">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Total Student Records</span>
+                                <h3 class="kpi-value" id="anomTotalVal">50,000</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card green">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Normal Student Records</span>
+                                <h3 class="kpi-value" id="anomNormalVal">48,250</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card red">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Anomalous Records</span>
+                                <h3 class="kpi-value" id="anomCountVal">1,750</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card dark">
+                            <div class="kpi-info">
+                                <span class="kpi-label">Anomaly Percentage</span>
+                                <h3 class="kpi-value" id="anomRateVal">3.5%</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid" style="margin-top: 25px;">
+                        <div class="chart-card">
+                            <h3>Anomalies by Academic Stream</h3>
+                            <div id="plotAnomalyStream" class="plot-container"></div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>Anomalies by College Tier</h3>
+                            <div id="plotAnomalyTier" class="plot-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-top: 25px;">
+                        <h3>Anomalous Student Records Table</h3>
+                        <div class="table-responsive">
+                            <table class="custom-table" id="tableAnomalyRecords">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th><th>Gender</th><th>City</th><th>Stream</th>
+                                        <th>Tier</th><th>CGPA</th><th>Coding Score</th>
+                                        <th>Status</th><th>Salary</th><th>Anomaly Flag</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 10: STUDENT RECORDS PAGE ================= -->
+            <section id="tab-students" class="tab-pane {% if active_tab == 'tab-students' %}active{% endif %}">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div>
+                            <h2>Student Database Explorer (50,000 Records)</h2>
+                            <p>Filter, search, paginate, and export student datasets</p>
+                        </div>
+                        <button id="btnExportCSV" class="btn btn-outline">📥 Export Filtered CSV</button>
+                    </div>
+
+                    <!-- Multi-column Filters -->
+                    <div class="filter-bar">
+                        <select id="stuFilterGender" class="filter-select">
+                            <option value="All">All Genders</option>
+                            {% for g in summary.unique_options.gender %}<option value="{{g}}">{{g}}</option>{% endfor %}
+                        </select>
+                        <select id="stuFilterStream" class="filter-select">
+                            <option value="All">All Streams</option>
+                            {% for s in summary.unique_options.stream %}<option value="{{s}}">{{s}}</option>{% endfor %}
+                        </select>
+                        <select id="stuFilterTier" class="filter-select">
+                            <option value="All">All Tiers</option>
+                            {% for t in summary.unique_options.tier %}<option value="{{t}}">{{t}}</option>{% endfor %}
+                        </select>
+                        <select id="stuFilterStatus" class="filter-select">
+                            <option value="All">All Statuses</option>
+                            <option value="1">Placed</option>
+                            <option value="0">Not Placed</option>
+                        </select>
+                        <input type="text" id="stuSearchInput" placeholder="🔍 Search ID, City, Stream..." class="search-input">
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="custom-table" id="studentsFullTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th><th>Gender</th><th>City</th><th>Tier</th>
+                                    <th>Stream</th><th>CGPA</th><th>Backlogs</th><th>Internships</th>
+                                    <th>Coding</th><th>Interview</th><th>Status</th><th>Salary</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="pagination-bar">
+                        <span id="stuPageInfo">Showing page 1 of 2000</span>
+                        <div class="pag-buttons">
+                            <button id="btnPrevPage" class="btn btn-sm btn-outline">◀ Prev</button>
+                            <button id="btnNextPage" class="btn btn-sm btn-outline">Next ▶</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= SECTION 11: PLACEMENT PREDICTOR PAGE ================= -->
+            <section id="tab-predictor" class="tab-pane {% if active_tab == 'tab-predictor' %}active{% endif %}">
+                <div class="predictor-container">
+                    
+                    <!-- Predictor Form -->
+                    <div class="panel form-panel">
+                        <div class="panel-header">
+                            <h2>Student Profile Input Form</h2>
+                            <p>Enter parameters to evaluate model prediction & salary package</p>
+                        </div>
+
+                        <form id="predictionForm" class="prediction-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Student Name</label>
+                                    <input type="text" name="student_name" value="Alex Smith" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select name="gender" class="form-select">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Academic Stream</label>
+                                    <select name="stream" class="form-select">
+                                        {% for s in summary.unique_options.stream %}
+                                        <option value="{{s}}">{{s}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>College Tier</label>
+                                    <select name="college_tier" class="form-select">
+                                        <option value="Tier1">Tier 1 College</option>
+                                        <option value="Tier2" selected>Tier 2 College</option>
+                                        <option value="Tier3">Tier 3 College</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>City Location</label>
+                                    <select name="city" class="form-select">
+                                        {% for c in summary.unique_options.city %}
+                                        <option value="{{c}}">{{c}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>History of Backlogs</label>
+                                    <select name="backlogs" class="form-select">
+                                        <option value="No">No Backlogs</option>
+                                        <option value="Yes">Has Active Backlogs</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="slider-header">
+                                    <label>Cumulative GPA (CGPA)</label>
+                                    <span class="slider-val" id="val_cgpa">8.2</span>
+                                </div>
+                                <input type="range" name="cgpa" id="input_cgpa" min="4.0" max="10.0" step="0.1" value="8.2" class="slider">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="slider-header">
+                                        <label>Coding Test Score (0-100)</label>
+                                        <span class="slider-val" id="val_coding">78</span>
+                                    </div>
+                                    <input type="range" name="coding_score" id="input_coding" min="0" max="100" value="78" class="slider">
+                                </div>
+                                <div class="form-group">
+                                    <div class="slider-header">
+                                        <label>Aptitude Score (0-100)</label>
+                                        <span class="slider-val" id="val_aptitude">72</span>
+                                    </div>
+                                    <input type="range" name="aptitude_score" id="input_aptitude" min="0" max="100" value="72" class="slider">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="slider-header">
+                                        <label>Mock Interview Score (0-100)</label>
+                                        <span class="slider-val" id="val_interview">75</span>
+                                    </div>
+                                    <input type="range" name="mock_interview" id="input_interview" min="0" max="100" value="75" class="slider">
+                                </div>
+                                <div class="form-group">
+                                    <label>Internships Completed</label>
+                                    <input type="number" name="internships" value="2" min="0" max="5" class="form-input">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-submit btn-lg">🚀 Predict Placement Outcome</button>
+                        </form>
+                    </div>
+
+                    <!-- Predictor Result Panel -->
+                    <div class="panel result-panel">
+                        <div class="result-placeholder" id="resultPlaceholder">
+                            <div class="placeholder-icon">🎯</div>
+                            <h3>Awaiting Input</h3>
+                            <p>Fill out the student parameters and click <strong>Predict Placement Outcome</strong> to generate AI placement probability.</p>
+                        </div>
+
+                        <div class="result-card hidden" id="resultCard">
+                            <div class="result-header">
+                                <span class="result-badge" id="resStatusBadge">LIKELY PLACED 🎉</span>
+                                <h3 id="resStudentName">Alex Smith</h3>
+                                <p id="resSubDetails">Computer Science • Tier2</p>
+                            </div>
+
+                            <div class="gauge-box">
+                                <div class="gauge-label">Calculated Placement Probability</div>
+                                <div class="gauge-val" id="resProbability">91.4%</div>
+                                <div class="progress-track">
+                                    <div class="progress-fill" id="resProbBar" style="width: 91.4%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="package-box">
+                                <span>Estimated Salary Package</span>
+                                <h2 id="resPackage">₹14.80 LPA</h2>
+                            </div>
+
+                            <div class="recs-box">
+                                <h4>💡 Actionable Recommendations</h4>
+                                <ul id="resRecsList"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            {% endif %}
+
+        </main>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>

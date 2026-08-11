@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Project List — Index & Abstracts</title>
+  <style>
+    :root{--bg:#f7f8fb;--card:#ffffff;--accent:#0b66ff;--muted:#6b7280}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,#0b66ff22,transparent);padding:22px 24px;border-bottom:1px solid #e6e9ef}
+    .wrap{max-width:1100px;margin:20px auto;padding:16px}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:20px}
+    nav.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.06);height:calc(100vh - 160px);position:sticky;top:20px;overflow:auto}
+    nav h2{margin:0 0 8px 0;font-size:18px}
+    .search{display:flex;gap:8px;margin-bottom:12px}
+    .search input{flex:1;padding:8px;border:1px solid #e6e9ef;border-radius:8px}
+    .index{list-style:none;padding:0;margin:0}
+    .index li{margin:6px 0}
+    .index a{display:block;padding:8px;border-radius:8px;color:var(--accent);text-decoration:none}
+    .index a:hover{background:#f1f5ff}
+    main{min-height:60vh}
+    .card{background:var(--card);padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(16,24,40,0.06);margin-bottom:16px}
+    .project-title{margin:0 0 8px 0;font-size:20px}
+    .abstract{margin:0;color:var(--muted);line-height:1.55}
+    .top-actions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    button{border:0;padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer}
+    .muted-btn{background:#eef2ff;color:var(--accent)}
+    .small{font-size:13px;color:var(--muted)}
+    footer{padding:20px;text-align:center;color:var(--muted)}
+    @media (max-width:880px){.grid{grid-template-columns:1fr}nav.card{position:relative;height:auto;}}
+  .dataset{margin-top:15px;border:1px solid #ddd;border-radius:8px;padding:10px;background:#fafafa}.dataset table{width:100%;border-collapse:collapse}.dataset td{border:1px solid #ddd;padding:6px}</style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1 style="margin:0;font-size:20px">
+MACHINE LEARNING ( 25SC2107E )<br>
+Course Sample Project Index List <br>
+Once you have finalized your project, click the following link: 
+<a href="https://docs.google.com/forms/d/e/1FAIpQLSfDvSue9CaWL41dvIo56cBDoovsw-cBPRACSQPnyeCWITL1Jg/viewform?usp=header"> Click here </a> 
+to finalize your project.</h1>
+      
+    </div>
+  </header>
+
+  <div class="wrap grid">
+    <nav class="card" aria-label="Project index">
+      <h2>Index</h2>
+      <div class="search">
+        <input id="filter" placeholder="Filter titles (type to search)" aria-label="Filter titles" />
+        <button id="topBtn" class="muted-btn">Top</button>
+      </div>
+      <ul id="indexList" class="index"></ul>
+      <p class="small" style="margin-top:12px">Tip: use your browser's find (Ctrl/Cmd+F) to search inside abstracts.</p>
+    </nav>
+
+    <main>
+      <div class="top-actions">
+        <button id="expandAll">Collapse all</button>
+        <button id="print">Print page</button>
+        <div style="flex:1"></div>
+        
+      </div>
+
+      <div id="contentArea"></div>
+
+    </main>
+  </div>
+
+  <footer>
+   Project index with anchored abstracts.
+  </footer>
+
+  <script>
+    
+    const projects = [
+{id:1,title:`VitalSign: AI-Based Healthcare Readmission and Length of Stay Prediction System`,abstract:`VitalSign is an AI-based healthcare system that helps hospitals predict how long a patient will stay in the hospital and whether the patient is likely to be readmitted within 30 days after discharge. The system analyzes patient information such as age, medical history, laboratory test results, medicines, diagnosis, and treatment details. Using machine learning algorithms, it identifies high-risk patients and supports doctors in making better treatment and discharge decisions. This helps hospitals improve patient care, reduce unnecessary readmissions, and use hospital resources more efficiently.`},
+{id:2,title:`GlucoTrend: AI-Based Continuous Glucose Monitoring (CGM) Forecasting and Lifestyle Analytics System`,abstract:`GlucoTrend is an AI-based system that predicts future blood glucose levels for diabetic patients. It uses Continuous Glucose Monitoring (CGM) data along with lifestyle information such as food intake, insulin dosage, exercise, heart rate, sleep, and stress levels. Machine learning models analyze these factors to forecast glucose changes before they become dangerous. The system helps patients and doctors take early action to prevent high or low blood sugar and improve diabetes management.`},
+{id:3,title:`AeroPure: AI-Based Air Quality Forecasting and Pollution Monitoring System`,abstract:`AeroPure is an AI-powered air quality monitoring system that predicts future pollution levels using historical air quality data and weather information. It analyzes pollutants such as PM2.5, PM10, carbon monoxide, nitrogen dioxide, and weather conditions like temperature, humidity, rainfall, and wind speed. The system provides early warnings about poor air quality, helping government agencies and the public take preventive measures to reduce health risks and improve environmental management.`},
+{id:4,title:`GridBalance: AI-Based Smart Energy Demand Forecasting and Meter Anomaly Detection System`,abstract:`GridBalance is an AI-based smart energy management system that predicts future electricity demand and detects abnormal electricity usage. It analyzes historical power consumption and smart meter readings to estimate energy requirements and identify unusual patterns caused by equipment faults, electricity theft, or meter failures. The system helps electricity providers improve power distribution, reduce energy losses, and maintain a reliable smart grid.`},
+{id:5,title:`SolarSense: AI-Based Solar Power Generation Forecasting and Fault Detection System`,abstract:`SolarSense is an AI-based system that predicts solar power generation and detects faults in solar power plants. It uses data such as solar radiation, temperature, inverter performance, and weather conditions to estimate future electricity generation. The system also identifies faulty solar panels and equipment by detecting unusual operating conditions. This helps improve energy production, reduce maintenance costs, and increase the efficiency of solar power plants.`},
+{id:6,title:`CropCast: AI-Based Crop Yield Prediction and Disease Risk Assessment System`,abstract:`CropCast is an AI-based farming support system that helps farmers predict crop yield and identify the risk of crop diseases. The system analyzes information such as rainfall, soil conditions, crop type, fertilizer usage, pesticide usage, weather, and cultivation practices. Using machine learning algorithms, it estimates the expected crop production and warns farmers about possible disease risks. This helps farmers choose suitable crops, plan irrigation and fertilizer usage, reduce crop losses, and improve agricultural productivity.`},
+{id:7,title:`FreshChain: AI-Based Shelf-Life Prediction and Cold Chain Breach Detection System`,abstract:`FreshChain is an AI-based food monitoring system that predicts the remaining shelf life of fruits and detects problems in cold storage during transportation. The system continuously monitors temperature, humidity, and carbon dioxide (CO₂) levels using IoT sensors. Machine learning models analyze these values to identify spoilage risks and detect cold-chain failures. The system helps reduce food wastage, improve food quality, and ensure safe storage and transportation of perishable products.`},
+{id:8,title:`RideRush: AI-Based Trip Demand Forecasting and Estimated Time of Arrival (ETA) Prediction System`,abstract:`RideRush is an AI-powered transportation system that predicts future taxi or ride demand and estimates the travel time for each trip. It analyzes historical trip data, pickup and drop-off locations, travel distance, traffic conditions, and passenger demand. Using machine learning algorithms, the system helps transport companies improve vehicle allocation, reduce passenger waiting time, optimize routes, and provide accurate arrival time predictions for better customer service.`},
+{id:9,title:`FlightFore: AI-Based Flight Delay and Cancellation Prediction System`,abstract:`FlightFore is an AI-based system that predicts flight delays and possible flight cancellations before departure. It analyzes historical flight information, airline schedules, airport details, weather conditions, and traffic data to identify flights that may experience delays. The system helps airlines improve scheduling, manage airport resources efficiently, and provide passengers with timely updates. This reduces operational problems and improves passenger satisfaction.`},
+{id:10,title:`ChargeUp: AI-Based EV Charging Demand Forecasting and Charging Station Anomaly Detection System`,abstract:`ChargeUp is an AI-based smart charging management system for electric vehicles (EVs). The system predicts future charging demand and detects abnormal behavior in charging stations. It analyzes charging sessions, energy usage, charging duration, and customer usage patterns using machine learning techniques. The system helps charging station operators improve service availability, reduce waiting times, detect equipment faults, and manage charging infrastructure more efficiently.`},
+{id:11,title:`StreamStay: AI-Based Customer Churn Prediction and Watch-Time Analytics for Music Streaming Services`,abstract:`StreamStay is an AI-based system that helps music streaming platforms identify users who are likely to stop using the service. It analyzes customer information such as listening history, subscription details, playback activity, and user behavior. Using machine learning algorithms, the system predicts customer churn and provides insights to improve user engagement. This helps companies offer personalized recommendations, retain more subscribers, and increase business revenue.`},
+{id:12,title:`PlaylistPulse: AI-Based Music Popularity Prediction and Skip Behavior Analysis System`,abstract:`PlaylistPulse is an AI-powered music recommendation system that predicts the popularity of songs and estimates whether users are likely to skip them. The system analyzes audio features such as energy, danceability, tempo, loudness, and popularity scores. Machine learning models identify listener preferences and improve playlist recommendations. This helps music streaming platforms provide better user experiences and increase customer satisfaction.`},
+{id:13,title:`CartIQ: AI-Based Market Basket Value Prediction and Product Reorder Recommendation System`,abstract:`CartIQ is an AI-based retail analytics system that predicts the total value of a customer's shopping basket and recommends products that the customer is likely to buy again. It analyzes previous purchases, shopping habits, product categories, and reorder history. Machine learning algorithms generate personalized product recommendations and help retailers manage inventory more efficiently. This improves customer satisfaction, increases sales, and supports better business decisions.`},
+{id:14,title:`AdSpark: AI-Based Click-Through Rate (CTR) and Conversion Prediction System`,abstract:`AdSpark is an AI-based digital marketing system that predicts whether users will click on an online advertisement and whether they are likely to make a purchase. It analyzes advertisement details, user interactions, device information, and browsing behavior. Machine learning models help marketers identify potential customers, improve advertisement performance, and optimize marketing campaigns. This increases advertising efficiency and improves return on investment (ROI).`},
+{id:15,title:`FraudShield: AI-Based Credit Card Fraud Detection and Financial Transaction Monitoring System`,abstract:`FraudShield is an AI-based financial security system that detects fraudulent credit card transactions in real time. The system analyzes transaction details, customer spending patterns, transaction frequency, and merchant information to identify suspicious activities. Machine learning algorithms distinguish genuine transactions from fraudulent ones and generate instant alerts. This helps banks and financial institutions reduce financial losses, improve customer security, and strengthen fraud prevention.`},
+{id:16,title:`CreditFair: AI-Based Loan Default Prediction and Fair Lending Assessment System`,abstract:`CreditFair is an AI-based banking system that predicts whether a loan applicant is likely to repay the loan or default. The system analyzes customer information such as income, employment, credit score, loan amount, repayment history, and financial details. It also checks whether loan approval decisions are fair and unbiased. Using machine learning algorithms, the system helps banks make accurate, transparent, and responsible lending decisions while reducing financial risk.`},
+{id:17,title:`ClaimWise: AI-Based Insurance Claim Cost Prediction and Fraud Detection System`,abstract:`ClaimWise is an AI-powered insurance management system that predicts the cost of insurance claims and detects fraudulent claims. The system analyzes customer information, policy details, accident history, and claim records to estimate claim amounts and identify suspicious activities. Machine learning algorithms help insurance companies process claims faster, reduce fraud, improve accuracy, and provide better customer service.`},
+{id:18,title:`HomeVision: AI-Based Housing Price Prediction and Days-on-Market Analysis System`,abstract:`HomeVision is an AI-based real estate system that predicts house prices and estimates how long a property will take to sell. The system analyzes property details such as location, land area, number of rooms, property type, and previous sales data. Machine learning algorithms provide accurate price predictions and market insights, helping buyers, sellers, and real estate agents make better investment and pricing decisions.`},
+{id:19,title:`RentRadar: AI-Based Rental Price Prediction and Vacancy Risk Assessment System`,abstract:`RentRadar is an AI-based rental property management system that predicts apartment rental prices and estimates the risk of a property remaining vacant. The system analyzes property features such as location, size, number of bedrooms, amenities, and historical rental data. Machine learning models provide rental price recommendations and vacancy predictions, helping landlords and real estate agencies improve occupancy and maximize rental income.`},
+{id:20,title:`LearnLift: AI-Based Student Performance and Dropout Prediction System`,abstract:`LearnLift is an AI-based educational analytics system that predicts student academic performance and identifies students who are at risk of dropping out. The system analyzes attendance, assessment scores, online learning activities, course registration, and student behavior. Using machine learning algorithms, it provides early warning alerts and personalized recommendations to teachers and institutions. This helps improve student performance, increase retention, and support better learning outcomes.`},
+{id:21,title:`SkillMatch: AI-Based Employee Attrition Prediction and Workforce Retention System`,abstract:`SkillMatch is an AI-based Human Resource (HR) analytics system that predicts whether an employee is likely to leave the organization. The system analyzes employee information such as age, education, job role, salary, work experience, performance, job satisfaction, overtime, and training records. Using machine learning algorithms, it identifies employees who are at risk of leaving and provides recommendations to improve employee satisfaction and retention. This helps organizations reduce employee turnover, improve workforce planning, and increase productivity.`},
+{id:22,title:`CivicFix: AI-Based Smart Complaint Routing and Resolution Time Prediction System`,abstract:`CivicFix is an AI-based smart city system that automatically classifies public complaints, sends them to the appropriate government department, and predicts the time required to resolve them. The system analyzes complaint type, location, submission time, and previous complaint records. Using machine learning and natural language processing techniques, it helps municipal authorities prioritize important issues, improve service delivery, reduce response time, and increase citizen satisfaction.`},
+{id:23,title:`RoadSafe: AI-Based Road Accident Severity Prediction and Traffic Risk Analysis System`,abstract:`RoadSafe is an AI-based traffic safety system that predicts the severity of road accidents and identifies accident-prone areas. The system analyzes accident records, weather conditions, road features, traffic information, location, and time of accidents. Machine learning algorithms estimate accident severity and identify high-risk locations. This helps traffic authorities improve road safety, plan preventive measures, allocate emergency resources effectively, and reduce accidents.`},
+{id:24,title:`AquaSense: AI-Based Water Quality Assessment and Demand Forecasting System`,abstract:`AquaSense is an AI-based water management system that checks whether water is safe for drinking and predicts future water demand. The system analyzes water quality parameters such as pH, hardness, dissolved solids, conductivity, turbidity, and other chemical properties. It also uses historical water usage data to forecast future demand. Machine learning algorithms help water authorities monitor water quality, detect contamination, plan water distribution, and ensure a safe and reliable water supply.`},
+{id:25,title:`SecureNet: AI-Based Network Intrusion Detection and Cyber Threat Intelligence System`,abstract:`SecureNet is an AI-based cybersecurity system that detects network attacks and identifies suspicious activities in real time. The system analyzes network traffic, communication patterns, and security events to detect attacks such as DDoS, brute-force attacks, malware, botnets, web attacks, and unauthorized access attempts. Machine learning algorithms classify different types of cyberattacks and generate instant security alerts. This helps organizations improve network security, reduce cyber threats, and respond quickly to security incidents.`}
+    ];
+
+    // render index & content
+    const indexList = document.getElementById('indexList');
+    const contentArea = document.getElementById('contentArea');
+
+    function slugify(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}
+
+    const data={1: ["Healthcare readmission", "Diabetes 130-US Hospitals (1999–2008), UCI", "https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008", "101,767 encounters, 50 features; has time_in_hospital (LOS) and readmitted (<30 days) as targets"], 2: ["CGM glucose forecasting", "GlucoBench: Glucose Monitoring & Lifestyle Data, Kaggle", "https://www.kaggle.com/datasets/omenkj/glucobench-glucose-monitoring-and-lifestyle-data", "Closest open alternative"], 3: ["Air quality forecasting", "Beijing Multi-Site Air-Quality Data, UCI", "https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data", "Hourly PM2.5/PM10 + weather"], 4: ["Demand forecast + meter anomaly", "PJM Hourly Energy Consumption, Kaggle", "https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption", "Pair with Smart Meters in London for anomalies"], 5: ["Solar generation + fault flag", "Solar Power Generation Data, Kaggle", "https://www.kaggle.com/datasets/anikannal/solar-power-generation-data", "Indian plants, inverter & sensor data"], 6: ["Crop yield + disease risk", "Agricultural Crop Yield in Indian States, Kaggle", "https://www.kaggle.com/datasets/akshatgupta7/crop-yield-in-indian-states-dataset", "Supplement disease dataset if required"], 7: ["Shelf-life + cold-chain breach", "Fruit Spoilage Prediction, Mendeley", "https://data.mendeley.com/datasets/czz68d9fwj/1", "Temp, humidity, CO2"], 8: ["Trip demand + ETA", "NYC TLC Trip Data", "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page", "Official dataset"], 9: ["Delay + cancellation", "Flight Delays, Kaggle", "https://www.kaggle.com/datasets/usdot/flight-delays", "5.8M+ flights"], 10: ["EV charging demand + fault", "EV Charging Usage", "https://data.cityofpaloalto.org/dataviews/257812/electric-vehicle-charging-station-usage-july-2011-dec-2020/", "Need anomaly derivation"], 11: ["Churn + watch-time", "KKBox Churn", "https://www.kaggle.com/c/kkbox-churn-prediction-challenge", "Listening logs"], 12: ["Popularity + skip", "Spotify Tracks", "https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset", "Approximate skip"], 13: ["Basket value + reorder", "Instacart Basket", "https://www.kaggle.com/c/instacart-market-basket-analysis/data", "Reordered label"], 14: ["CTR + conversion", "Avazu CTR", "https://www.kaggle.com/c/avazu-ctr-prediction", "40M+ impressions"], 15: ["Financial Fraud Detection", "Credit Card Fraud Detection", "https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud", "0.17% fraud"], 16: ["Default + fair lending", "Lending Club", "https://www.kaggle.com/datasets/wordsforthewise/lending-club", "Fairness auditing"], 17: ["Claim cost + fraud", "Allstate Claims", "https://www.kaggle.com/c/allstate-claims-severity/data", "Need fraud supplement"], 18: ["Real Estate Analytics", "Melbourne Housing", "https://www.kaggle.com/datasets/anthonypino/melbourne-housing-market", "Engineer days-on-market"], 19: ["Rent + vacancy", "Apartments for Rent", "https://www.kaggle.com/datasets/adithyaawati/apartments-for-rent-classified", "Rental listings"], 20: ["Final score + dropout", "OULAD", "https://archive.ics.uci.edu/dataset/349/open+university+learning+analytics+dataset", "Purpose-built"], 21: ["Fit/attrition + tenure", "IBM HR Analytics", "https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset", "Attrition"], 22: ["Routing + resolution", "311 Service Requests", "https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2020-to-Present/erm2-nwe9", "Official"], 23: ["Incidents + severity", "US Accidents", "https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents", "7.7M+"], 24: ["Water Resource Management", "Water Quality and Potability", "https://www.kaggle.com/datasets/uom190346a/water-quality-and-potability", "Combine with demand"], 25: ["Cybersecurity", "CICIDS2017", "https://www.kaggle.com/datasets/ericanacletoribeiro/cicids2017-cleaned-and-preprocessed", "Cyber attacks"]};
+projects.forEach(p=>{
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#project-' + p.id;
+      a.textContent = `${p.id}. ${p.title}`;
+      a.addEventListener('click', ()=>{document.querySelectorAll('.card .abstract').forEach(el=>el.style.display='block');});
+      li.appendChild(a);
+      indexList.appendChild(li);
+
+      const card = document.createElement('section');
+      card.className = 'card';
+      card.id = 'project-' + p.id;
+      card.innerHTML = `<h3 class="project-title">${p.id}. ${p.title}</h3><p class="abstract">${p.abstract}</p>
+<div class="dataset"><h4>Dataset Information</h4><table>
+<tr><td><b>Domain</b></td><td>${(d=data[p.id])[0]}</td></tr>
+<tr><td><b>Verified Dataset</b></td><td>${d[1]}</td></tr>
+<tr><td><b>Direct Link</b></td><td><a href="${d[2]}" target="_blank">Open Dataset</a></td></tr>
+<tr><td><b>Notes</b></td><td>${d[3]}</td></tr></table></div>`;
+      contentArea.appendChild(card);
+    });
+
+    // Filter
+    document.getElementById('filter').addEventListener('input', e=>{
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('#indexList li').forEach(li=>{
+        const txt = li.textContent.toLowerCase();
+        li.style.display = txt.includes(q) ? '' : 'none';
+      });
+    });
+
+    // Top button
+    document.getElementById('topBtn').addEventListener('click', ()=>{window.scrollTo({top:0,behavior:'smooth'});});
+
+    // Collapse/expand (simple behavior)
+    const expandBtn = document.getElementById('expandAll');
+    let collapsed=false;
+    expandBtn.addEventListener('click', ()=>{
+      collapsed = !collapsed;
+      document.querySelectorAll('.abstract').forEach(a=>a.style.display = collapsed ? 'none' : 'block');
+      expandBtn.textContent = collapsed ? 'Expand all' : 'Collapse all';
+    });
+
+    // Print
+    document.getElementById('print').addEventListener('click', ()=>window.print());
+
+  </script>
+</body>
+</html>
